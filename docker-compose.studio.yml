@@ -1,0 +1,44 @@
+name: supabase-studio
+
+services:
+  studio:
+    container_name: supabase-studio
+    image: supabase/studio:2026.03.16-sha-5528817
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD", "node", "-e",
+          "fetch('http://localhost:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})"
+        ]
+      timeout: 10s
+      interval: 5s
+      retries: 3
+    # ✅ plus de depends_on analytics
+    environment:
+      HOSTNAME: "::"
+
+      # ✅ Remplace <IP_BACKEND> par l'IP de ton serveur backend
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+      PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
+      PGRST_DB_MAX_ROWS: ${PGRST_DB_MAX_ROWS:-1000}
+      PGRST_DB_EXTRA_SEARCH_PATH: ${PGRST_DB_EXTRA_SEARCH_PATH:-public}
+
+      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
+      DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
+
+      # ✅ Logs désactivés (plus d'analytics)
+      NEXT_PUBLIC_ENABLE_LOGS: false
+    ports:
+      - "3001:3000"
